@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VERTEBRai, visor clínico para inspección DICOM y evaluación ortopédica vertebral.">
+  <title>VERTEBRai | Visor Clínico de Columna</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #5d6b76;
+      --slate: #284657;
+      --blue: #1175a8;
+      --blue-dark: #0b4e70;
+      --ice: #eaf4f7;
+      --line: #d5e0e5;
+      --paper: #ffffff;
+      --shadow: 0 18px 42px rgba(23, 48, 61, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: #f5f8f9;
+      background-image: linear-gradient(rgba(17, 117, 168, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(17, 117, 168, 0.045) 1px, transparent 1px);
+      background-size: 32px 32px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; }
+
+    .site-header {
+      background: var(--slate);
+      color: var(--paper);
+      border-bottom: 4px solid var(--blue);
+    }
+
+    .nav-wrap, .hero-inner, .content-wrap, .site-footer {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .nav-wrap {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 50%;
+      color: #a8e1f2;
+      font-size: 0.8rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      color: #d7e5eb;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover, .nav-links a:focus { color: #8ed8ee; }
+
+    .hero {
+      color: var(--paper);
+      background: var(--slate);
+      padding: 82px 0 92px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -100px;
+      top: -160px;
+      width: 420px;
+      height: 420px;
+      border: 1px solid rgba(142, 216, 238, 0.22);
+      border-radius: 50%;
+      box-shadow: 0 0 0 42px rgba(142, 216, 238, 0.04), 0 0 0 84px rgba(142, 216, 238, 0.04);
+    }
+
+    .hero-inner { position: relative; z-index: 1; }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: #8ed8ee;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 { line-height: 1.15; margin-top: 0; }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 20px;
+      font-size: clamp(2.6rem, 7vw, 5.6rem);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-lead {
+      max-width: 680px;
+      margin: 0 0 30px;
+      color: #dcecf1;
+      font-size: clamp(1.1rem, 2vw, 1.4rem);
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 700px;
+      gap: 16px 36px;
+      margin-bottom: 34px;
+      color: #c0d2d9;
+      font-size: 0.95rem;
+    }
+
+    .hero-meta strong { display: block; color: var(--paper); font-size: 0.77rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 22px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background-color 160ms ease, transform 160ms ease;
+    }
+
+    .button-primary { background: #8ed8ee; color: #123444; }
+    .button-primary:hover, .button-primary:focus { background: #b7ebf7; transform: translateY(-2px); }
+
+    .content-wrap { padding: 76px 0; }
+
+    .section-heading { max-width: 690px; margin-bottom: 32px; }
+    .section-heading .eyebrow { color: var(--blue); margin-bottom: 10px; }
+    h2 { margin-bottom: 12px; font-size: clamp(1.9rem, 4vw, 3rem); }
+    .section-heading p { margin: 0; color: var(--muted); }
+
+    .overview-grid, .stack-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; }
+
+    .panel {
+      padding: 30px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .panel h3 { margin-bottom: 14px; font-size: 1.25rem; color: var(--blue-dark); }
+    .panel p:last-child { margin-bottom: 0; }
+
+    .objective-list, .stack-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+    .objective-list li, .stack-list li { padding-left: 22px; position: relative; }
+    .objective-list li::before, .stack-list li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 8px; height: 8px; background: var(--blue); border-radius: 50%; }
+    .stack-list strong { display: block; color: var(--ink); }
+    .stack-list span { color: var(--muted); }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+    .tag { padding: 6px 10px; border: 1px solid #acd2df; border-radius: 3px; color: var(--blue-dark); background: var(--ice); font-size: 0.82rem; font-weight: 700; }
+
+    .standards { margin-top: 24px; padding: 22px 26px; border-left: 4px solid var(--blue); background: #e8f2f5; }
+    .standards strong { color: var(--blue-dark); }
+
+    .roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line); }
+    .phase { min-height: 190px; padding: 26px 26px 22px; border-right: 1px solid var(--line); background: rgba(255, 255, 255, 0.78); }
+    .phase:last-child { border-right: 0; }
+    .phase-number { color: var(--blue); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; }
+    .phase h3 { margin: 10px 0 9px; font-size: 1.2rem; }
+    .phase p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .phase.current { background: #dff1f5; }
+
+    .site-footer { padding: 26px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.86rem; }
+    .site-footer a { color: var(--blue-dark); }
+
+    @media (max-width: 760px) {
+      .nav-wrap, .hero-inner, .content-wrap, .site-footer { width: min(100% - 28px, 620px); }
+      .nav-wrap { min-height: 62px; }
+      .nav-links { gap: 12px; font-size: 0.78rem; }
+      .hero { padding: 62px 0 68px; }
+      .hero-meta, .overview-grid, .stack-grid { grid-template-columns: 1fr; }
+      .content-wrap { padding: 56px 0; }
+      .panel { padding: 23px; }
+      .roadmap { grid-template-columns: 1fr; }
+      .phase { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .phase:last-child { border-bottom: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-wrap" aria-label="Navegación principal">
+      <a class="brand" href="#inicio"><span class="brand-mark" aria-hidden="true">V</span><span>VERTEBRai</span></a>
+      <div class="nav-links">
+        <a href="#proyecto">Proyecto</a>
+        <a href="#stack">Ficha técnica</a>
+        <a href="#roadmap">Roadmap</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <p class="eyebrow">Proyecto clínico / biomédico</p>
+        <h1 id="hero-title">VERTEBRai | Visor Clínico de Columna</h1>
+        <p class="hero-lead">Plataforma web para inspección DICOM y evaluación ortopédica vertebral.</p>
+        <div class="hero-meta">
+          <div><strong>Institución</strong>Hospital Carlos Van Buren (HCVB) / Servicio de Radiología</div>
+          <div><strong>Autor</strong>Daniel Cabrera Astudillo</div>
+          <div><strong>Asignatura</strong>Programación asistida con IA</div>
+          <div><strong>Versión</strong>1.0.0 · Visor calibrado</div>
+        </div>
+        <a class="button button-primary" href="./vertebrai/index.html" target="_blank" rel="noopener">Lanzar Visor Clínico</a>
+      </div>
+    </section>
+
+    <section class="content-wrap" id="proyecto" aria-labelledby="project-title">
+      <div class="section-heading">
+        <p class="eyebrow">01 / Contexto y propósito</p>
+        <h2 id="project-title">Una lectura clínica más precisa y trazable</h2>
+        <p>VERTEBRai aborda la revisión de imágenes de columna con herramientas enfocadas en la medición, la calibración y el registro de observaciones clínicas.</p>
+      </div>
+      <div class="overview-grid">
+        <article class="panel">
+          <h3>El problema clínico</h3>
+          <p>El análisis de deformidades espinales como escoliosis y cifosis exige comparar estructuras anatómicas y medir ángulos con precisión. Cuando estas tareas dependen de capturas aisladas o herramientas sin escala física, se dificulta mantener resultados consistentes y auditables.</p>
+          <div class="tags" aria-label="Áreas clínicas"><span class="tag">Escoliosis</span><span class="tag">Cifosis</span><span class="tag">Columna vertebral</span></div>
+        </article>
+        <article class="panel">
+          <h3>La solución técnica</h3>
+          <ul class="objective-list">
+            <li>Renderizado web directo, sin plugins adicionales.</li>
+            <li>Calibración espacial física milimétrica real mediante <strong>Pixel Spacing</strong>.</li>
+            <li>Medición interactiva con Ángulo de Cobb y herramienta de 3 puntos.</li>
+            <li>Persistencia de observaciones clínicas para dar continuidad al análisis.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-wrap" id="stack" aria-labelledby="stack-title">
+      <div class="section-heading">
+        <p class="eyebrow">02 / Ficha técnica</p>
+        <h2 id="stack-title">Tecnología al servicio de la lectura médica</h2>
+      </div>
+      <div class="stack-grid">
+        <article class="panel">
+          <h3>Stack de desarrollo</h3>
+          <ul class="stack-list">
+            <li><strong>Frontend</strong><span>HTML5 (Canvas API), CSS3, JavaScript ES6+ modular y dicom-parser.</span></li>
+            <li><strong>Backend y base de datos</strong><span>PHP 7.4+ con PDO, MySQL / MariaDB.</span></li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3>Estándares médicos</h3>
+          <p>Visualización de Little Endian Explícito de 8 y 16 bits, con una implementación orientada a la anonimización ética de los estudios y al resguardo de la información clínica.</p>
+        </article>
+      </div>
+      <div class="standards"><strong>Enfoque:</strong> precisión de escala, trazabilidad de observaciones y respeto por la privacidad de pacientes anonimizados.</div>
+    </section>
+
+    <section class="content-wrap" id="roadmap" aria-labelledby="roadmap-title">
+      <div class="section-heading">
+        <p class="eyebrow">03 / Hoja de ruta</p>
+        <h2 id="roadmap-title">De la medición a la continuidad clínica</h2>
+      </div>
+      <div class="roadmap">
+        <article class="phase current"><span class="phase-number">FASE 01 · COMPLETADA</span><h3>v1.0.0</h3><p>Visor calibrado, renderizado DICOM y trazado angular.</p></article>
+        <article class="phase"><span class="phase-number">FASE 02 · SIGUIENTE</span><h3>Colaboración clínica</h3><p>Módulo de usuarios y radiólogos para organizar el trabajo del equipo.</p></article>
+        <article class="phase"><span class="phase-number">FASE 03 · PROYECCIÓN</span><h3>Seguimiento inteligente</h3><p>Seguimiento temporal de pacientes anonimizados e integración de modelos de IA asistida.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>VERTEBRai · Proyecto académico orientado al Servicio de Radiología del HCVB · <a href="profesor.html">Taller de programación con IA</a></p>
+  </footer>
+</body>
+</html>
